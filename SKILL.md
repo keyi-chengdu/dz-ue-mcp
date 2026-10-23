@@ -39,7 +39,7 @@ UE 官方 MCP 是**实验性**功能：工具集与 API 可能随版本变化，
 ## 4. DZProject 工作流配方
 
 - **GAS 资产核查**：plan 批准后，用工具集查询 GA_/GE_/GC_ 资产、Blueprint 类默认值与 Tag 配置，与 `dz-gas-split` 产出的 Master Plan 比对（GA/GE/GC 数量与职责、`Item.<8位ID>` Tag、Asset Tags 与 Granted Tags 区分）。
-- **验证纪律**：涉及 GA/GE/网络同步的改动，验证必须覆盖单机 PIE + 双端 PIE（或 DebugNetwork）；跑 PIE/自动化测试前先保存当前关卡。
+- **验证纪律**：涉及 GA/GE/网络同步的改动，验证必须覆盖单机 PIE + 双端 PIE（或 DebugNetwork）；DZ 行为类 PIE 一律开在 `/Game/SandBox/Demo_Maps/Lv_Test_AI`（gymlevel 全木桩、无 AI 行为，不可用于测试，2026-10-22 用户拍板）；跑 PIE/自动化测试前先保存当前关卡。
 - **C++ 改动流程**：DSH 侧改代码 → 编译 → Live Coding/重启 → MCP 验证；不要期望 MCP 能触发 UBT 编译，除非工具集明确提供该工具。
 - **编辑器未开时的降级**：改用文件级检查（`Source/`、`Config/`、`*.uproject`），把"需要编辑器验证"列入待办；不要硬凑结论。
 
@@ -71,5 +71,8 @@ UE 官方 MCP 是**实验性**功能：工具集与 API 可能随版本变化，
 | `GameFeaturesToolset.GameFeaturesToolset` | Game Feature 插件列表与启用 |
 | `ToolsetRegistry.AgentSkillToolset` | 编辑器内技能管理 |
 | `DataRegistryToolset` / `DataflowAgentToolset` / `PCGToolset` | 按需（数据表、Dataflow、PCG 图） |
+| `DZStateTreeToolset.DZStateTreeEditTools` | **DZ 自研 ST 编辑工具集（2026-10-22 装验）**：ST 资产读+写+编译+属性绑定，dz-statetree §2.1 首选通道 |
 
-常用配方映射：PIE 验证 = `EditorAppToolset`（启动/停止 PIE）+ `LogsToolset`（读报错）；GAS 运行时验证 = `AbilitySystemInspectorToolset`；Tag 核查 = `GameplayTagsToolset`；回归 = `AutomationTestToolset`。
+常用配方映射：PIE 验证 = `EditorAppToolset`（启动/停止 PIE）+ `LogsToolset`（读报错）；GAS 运行时验证 = `AbilitySystemInspectorToolset`；Tag 核查 = `GameplayTagsToolset`；回归 = `AutomationTestToolset`；ST 编辑 = `DZStateTreeToolset.DZStateTreeEditTools`（配 `editor_toolset...asset.AssetTools.save_assets` 落盘）。
+
+- 2026-10-22 增补（A 机复查 `list_toolsets`）：工具集已大幅扩容——DZ 自研 `DZStateTreeToolset.DZStateTreeEditTools`（ST 编辑，见 dz-statetree §2.1）与 `editor_toolset.*` 家族（`AssetTools` 含 save_assets/is_dirty/get_referencers/find_assets/delete、`ObjectTools` 通用属性读写、`ProgrammaticToolset` 工具编排、Scene/Blueprint/DataTable 等）、引擎 `state_tree_toolset`（ST 只读）、Niagara/PCG/Sequencer/SlateInspector 等均已注册。上表只列 DZ 常用项，完整清单以 `list_toolsets` 实时输出为准。
